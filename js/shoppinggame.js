@@ -299,6 +299,7 @@ function init(data) {
 
         rl.question("What's your name? ", function (name) {
             // Assign the player object's name property to the user entered name here
+            player.name = name;
             console.log(`Welcome ${player.name} !!!`.blue);
             start(data);
         });
@@ -321,22 +322,26 @@ function init(data) {
     const shop = (prodList, tBill, lastProd) => {
         let totalBill = tBill;
         const prId = generateProductId();
-        let product = null; // Assign the value of product here
-        let productDetails = null; // Assign the value of productDetails here
+        let product = Object.is(lastProd, undefined) ? getProduct(prodList, prId): lastProd;
+        let productDetails = product.getDetails();
 
         rl.question(`You can buy - ${productDetails}.\n Do you want to buy this item <Y/N>? `.yellow, function (option) {
-            const regexYes = null; // Use the RegExp built-in object type here as appropriate
-            const regexNo = null; // Use the RegExp built-in object type here as appropriate
+            const regexYes = new RegExp('y' , 'i')
+            const regexNo = new RegExp('n' , 'i')
             if (regexYes.test(option)) {
                 totalBill = calculateBill(product, totalBill);
                 calculatePoints(product, totalBill);
                 console.log(`${player.name} you earned ${player.getCurrentScore()} points!`.bold);
                 if (player.score >= 500) {
-                    // Define and set new property status in the player object here
+                    Object.defineProperty(player, "status", {
+                        value : "Shopping Master"
+                    })
                     exitWon();
                 } else {
                     let iCount = ++player.items;
-                    // Make the Object.defineProperty() call here to set the value of items using the value of iCount
+                    Object.defineProperty(player, 'items', {
+                        value : iCount
+                    })
                     
                     if (player.items < 10) {
                         shop(prodList, totalBill);
@@ -360,15 +365,15 @@ function init(data) {
 
     // Complete this function
     const rateAndExit = () => {
-        // Create a new instance of Rating and assign it to a variable named playerRating here
+        let playerRating = new Rating()
         rl.question("How would you rate this game on a scale of 1-10 (1 being the lowest)?:", function (r) {
             if (r == "" || isNaN(r) || r == 0 || r > 10) {
                 console.log("Invalid rating! Please nter a number from 1 - 10".red);
                 rateAndExit();
             } else {
-                // Call rating setter method of playerRating to set user entered rate value here
+                playerRating.rating = r;
                 
-                // Call Object.assign() method here to populate target
+                let target = Object.assign({}, player, playerRating);
                 
                 console.log(`${target.name} you rated this game as ${target.rate}`.green);
                 console.log("Thank you for your valuable feedback.".blue);
@@ -379,14 +384,14 @@ function init(data) {
 
     // Complete this function
     const exitLost = () => {
-        let pointsToReach; // Assign calculated value to pointsToReach here
+        let pointsToReach = (500 - player.getCurrentScore());
         console.log(`Your chances are over! You are short of ${pointsToReach} to become a Shopping Master. Good Luck for next time!`.yellow);
         rateAndExit();
     };
 
     // Complete this function
     const exitWon = () => {
-        let finalStatus; 
+        let finalStatus = player.status;
         console.log(`Congratulations!!! You became ${finalStatus}!`.blue);
         rateAndExit();
     };
@@ -403,6 +408,7 @@ function init(data) {
 
 
 
+const { get } = require("https");
     ///////////////////////////////////////////////////////////////
     const readline = require("readline");
     require('colors');
